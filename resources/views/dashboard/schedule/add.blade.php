@@ -52,8 +52,8 @@
                         <input type="text" name="scheduled_at" class="form-control" rel="datepicker-custom" data-date-format="YYYY-MM-DD HH:mm" required placeholder="{{ trans('forms.schedules.scheduled_at') }}">
                     </div>
                     <div class="form-group">
-                        <label>{{ trans('forms.schedules.scheduled_at') }}</label>
-                        <input type="text" name="completed_at" class="form-control" rel="datepicker-custom" data-date-format="YYYY-MM-DD HH:mm" placeholder="{{ trans('forms.schedules.scheduled_at') }}">
+                        <label>{{ trans('forms.schedules.completed_at') }}</label>
+                        <input type="text" name="completed_at" class="form-control" rel="datepicker-custom" data-date-format="YYYY-MM-DD HH:mm" placeholder="{{ trans('forms.schedules.completed_at') }}">
                     </div>
                 </fieldset>
 
