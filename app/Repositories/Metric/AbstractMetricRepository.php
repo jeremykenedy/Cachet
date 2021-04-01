@@ -85,7 +85,7 @@ abstract class AbstractMetricRepository
         if (!isset($metric->calc_type) || $metric->calc_type == Metric::CALC_SUM) {
             return "sum({$this->getMetricPointsTable()}.value * {$this->getMetricPointsTable()}.counter) AS value";
         } elseif ($metric->calc_type == Metric::CALC_AVG) {
-            return "avg({$this->getMetricPointsTable()}.value * {$this->getMetricPointsTable()}.counter) AS value";
+            return "avg({$this->getMetricPointsTable()}.value) AS value";
         } else {
             return "sum({$this->getMetricPointsTable()}.value * {$this->getMetricPointsTable()}.counter) AS value";
         }
@@ -108,7 +108,7 @@ abstract class AbstractMetricRepository
                 $point->value = $metric->default_value;
             }
 
-            if ($point->value === 0 && $metric->default_value != $value) {
+            if ($point->value === 0 && $metric->default_value != $point->value) {
                 $point->value = $metric->default_value;
             }
 

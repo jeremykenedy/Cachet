@@ -23,7 +23,7 @@ return [
     |
     */
 
-   'github' => [
+    'github' => [
         'token' => env('GITHUB_TOKEN'),
     ],
 
@@ -36,10 +36,16 @@ return [
         'secret' => env('MAIL_PASSWORD'),
     ],
 
+    'nexmo' => [
+        'key'      => env('NEXMO_KEY'),
+        'secret'   => env('NEXMO_SECRET'),
+        'sms_from' => env('NEXMO_SMS_FROM'),
+    ],
+
     'ses' => [
         'key'    => env('MAIL_USERNAME'),
         'secret' => env('MAIL_PASSWORD'),
-        'region' => 'us-east-1',
+        'region' => env('SES_REGION', 'us-east-1'),
     ],
 
     'sparkpost' => [

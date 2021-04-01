@@ -34,6 +34,8 @@ class Tag extends Model
 
     /**
      * Overrides the models boot method.
+     *
+     * @return void
      */
     public static function boot()
     {
@@ -52,5 +54,32 @@ class Tag extends Model
     public function components()
     {
         return $this->belongsToMany(Component::class);
+    }
+
+    /**
+     * @param array|\ArrayAccess $values
+     *
+     * @return \CachetHQ\Cachet\Models\Tag|static
+     */
+    public static function findOrCreate($values)
+    {
+        $tags = collect($values)->map(function ($value) {
+            if ($value instanceof self) {
+                return $value;
+            }
+
+            $tag = static::where('name', '=', $value)->first();
+
+            if (!$tag instanceof self) {
+                $tag = static::create([
+                    'name' => $value,
+                    'slug' => Str::slug($value),
+                ]);
+            }
+
+            return $tag;
+        });
+
+        return is_string($values) ? $tags->first() : $tags;
     }
 }

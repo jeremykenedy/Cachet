@@ -11,11 +11,10 @@
 
 namespace CachetHQ\Cachet\Presenters;
 
-use CachetHQ\Cachet\Dates\DateFactory;
 use CachetHQ\Cachet\Presenters\Traits\TimestampsTrait;
+use CachetHQ\Cachet\Services\Dates\DateFactory;
 use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Support\Facades\Config;
 use McCool\LaravelAutoPresenter\BasePresenter;
 
 /**
@@ -32,7 +31,7 @@ class IncidentUpdatePresenter extends BasePresenter implements Arrayable
      *
      * @return string
      */
-    public function formattedMessage()
+    public function formatted_message()
     {
         return Markdown::convertToHtml($this->wrappedObject->message);
     }
@@ -44,7 +43,7 @@ class IncidentUpdatePresenter extends BasePresenter implements Arrayable
      */
     public function raw_message()
     {
-        return strip_tags($this->formattedMessage());
+        return strip_tags($this->formatted_message());
     }
 
     /**
@@ -64,7 +63,7 @@ class IncidentUpdatePresenter extends BasePresenter implements Arrayable
      */
     public function created_at_formatted()
     {
-        return ucfirst(app(DateFactory::class)->make($this->wrappedObject->created_at)->format(Config::get('setting.incident_date_format', 'l jS F Y H:i:s')));
+        return ucfirst(app(DateFactory::class)->make($this->wrappedObject->created_at)->format($this->incidentDateFormat()));
     }
 
     /**
@@ -124,14 +123,19 @@ class IncidentUpdatePresenter extends BasePresenter implements Arrayable
     {
         switch ($this->wrappedObject->status) {
             case 1: // Investigating
+
                 return 'icon ion-flag oranges';
             case 2: // Identified
+
                 return 'icon ion-alert yellows';
             case 3: // Watching
+
                 return 'icon ion-eye blues';
             case 4: // Fixed
+
                 return 'icon ion-checkmark greens';
             default: // Something actually broke, this shouldn't happen.
+
                 return '';
         }
     }

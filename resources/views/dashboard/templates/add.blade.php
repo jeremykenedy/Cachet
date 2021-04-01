@@ -9,13 +9,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/mode/twig/twig.min.js"></script>
 
 <script>
-(function() {
-    var editor = CodeMirror.fromTextArea(document.getElementById('cm-editor'), {
-        lineNumbers: true,
-        mode: 'twig',
-        lineWrapping: true
-    });
-}());
+//Initializes the editor only once the DOM is loaded.
+window.addEventListener("DOMContentLoaded", function(e) {
+     var editor = CodeMirror.fromTextArea(document.getElementById('cm-editor'), {
+         lineNumbers: true,
+         mode: 'twig',
+         lineWrapping: true
+     });
+});
 </script>
 @stop
 
@@ -32,17 +33,17 @@
 <div class="content-wrapper">
     <div class="row">
         <div class="col-md-12">
-            @include('dashboard.partials.errors')
+            @include('partials.errors')
             <form class="form-vertical" name="IncidentForm" role="form" method="POST" autocomplete="off">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 <fieldset>
                     <div class="form-group">
                         <label for="template-name">{{ trans('forms.incidents.templates.name') }}</label>
-                        <input type="text" class="form-control" name="template[name]" id="template-name" required placeholder="{{ trans('forms.incidents.templates.name') }}">
+                        <input type="text" class="form-control" name="name" id="template-name" required placeholder="{{ trans('forms.incidents.templates.name') }}" value="{{ Binput::old('name') }}">
                     </div>
                     <div class="form-group">
                         <label>{{ trans('forms.incidents.templates.template') }}</label>
-                        <textarea name="template[template]" id="cm-editor" class="form-control" rows="8" placeholder="{{ trans('forms.incidents.templates.template') }}"></textarea>
+                        <textarea name="template" id="cm-editor" class="form-control" rows="8" placeholder="{{ trans('forms.incidents.templates.template') }}">{{ Binput::old('template') }}</textarea>
                         <span class="help-block">{!! trans('forms.incidents.templates.twig') !!}</span>
                     </div>
                 </fieldset>

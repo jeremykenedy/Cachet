@@ -17,6 +17,7 @@ use CachetHQ\Cachet\Bus\Events\Subscriber\SubscriberHasSubscribedEvent;
 use CachetHQ\Cachet\Models\Component;
 use CachetHQ\Cachet\Models\Subscriber;
 use CachetHQ\Cachet\Models\Subscription;
+use CachetHQ\Cachet\Notifications\Subscriber\VerifySubscriptionNotification;
 
 /**
  * This is the subscribe subscriber command handler.
@@ -49,7 +50,7 @@ class SubscribeSubscriberCommandHandler
             $components = Component::all();
         }
 
-        $components->map(function ($component) use ($subscriber) {
+        $components->each(function ($component) use ($subscriber) {
             Subscription::create([
                 'subscriber_id' => $subscriber->id,
                 'component_id'  => $component->id,
@@ -57,10 +58,12 @@ class SubscribeSubscriberCommandHandler
         });
 
         if ($command->verified) {
-            dispatch(new VerifySubscriberCommand($subscriber));
+            execute(new VerifySubscriberCommand($subscriber));
         } else {
-            event(new SubscriberHasSubscribedEvent($subscriber));
+            $subscriber->notify(new VerifySubscriptionNotification());
         }
+
+        event(new SubscriberHasSubscribedEvent($subscriber));
 
         $subscriber->load('subscriptions');
 

@@ -12,15 +12,20 @@
 namespace CachetHQ\Cachet\Models;
 
 use AltThree\Validator\ValidatingTrait;
+use AltThree\Validator\ValidationException;
+use CachetHQ\Cachet\Models\Traits\HasMeta;
 use CachetHQ\Cachet\Models\Traits\SortableTrait;
 use CachetHQ\Cachet\Presenters\MetricPresenter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\MessageBag;
 use McCool\LaravelAutoPresenter\HasPresenter;
 
 class Metric extends Model implements HasPresenter
 {
-    use SortableTrait, ValidatingTrait;
+    use HasMeta;
+    use SortableTrait;
+    use ValidatingTrait;
 
     /**
      * The calculation type of sum.
@@ -37,6 +42,27 @@ class Metric extends Model implements HasPresenter
     const CALC_AVG = 1;
 
     /**
+     * Viewable only authenticated users.
+     *
+     * @var int
+     */
+    const VISIBLE_AUTHENTICATED = 0;
+
+    /**
+     * Viewable by public.
+     *
+     * @var int
+     */
+    const VISIBLE_GUEST = 1;
+
+    /**
+     * Viewable by nobody.
+     *
+     * @var int
+     */
+    const VISIBLE_HIDDEN = 2;
+
+    /**
      * The model's attributes.
      *
      * @var string[]
@@ -50,6 +76,7 @@ class Metric extends Model implements HasPresenter
         'default_view'  => 1,
         'threshold'     => 5,
         'order'         => 0,
+        'visible'       => 1,
     ];
 
     /**
@@ -66,6 +93,7 @@ class Metric extends Model implements HasPresenter
         'default_view'  => 'int',
         'threshold'     => 'int',
         'order'         => 'int',
+        'visible'       => 'int',
     ];
 
     /**
@@ -84,6 +112,7 @@ class Metric extends Model implements HasPresenter
         'default_view',
         'threshold',
         'order',
+        'visible',
     ];
 
     /**
@@ -98,7 +127,7 @@ class Metric extends Model implements HasPresenter
         'default_value' => 'required|numeric',
         'places'        => 'required|numeric|between:0,4',
         'default_view'  => 'required|numeric|between:0,3',
-        'threshold'     => 'required|numeric|between:0,10',
+        'visible'       => 'required|numeric|between:0,2',
     ];
 
     /**
@@ -113,7 +142,23 @@ class Metric extends Model implements HasPresenter
         'default_value',
         'calc_type',
         'order',
+        'visible',
     ];
+
+    /**
+     * Overrides the models boot method.
+     *
+     * @return void
+     */
+    public static function boot()
+    {
+        parent::boot();
+
+        // When deleting a metric, delete the points too.
+        self::deleting(function ($model) {
+            $model->points()->delete();
+        });
+    }
 
     /**
      * Get the points relation.
@@ -122,7 +167,7 @@ class Metric extends Model implements HasPresenter
      */
     public function points()
     {
-        return $this->hasMany(MetricPoint::class, 'metric_id', 'id');
+        return $this->hasMany(MetricPoint::class, 'metric_id', 'id')->latest();
     }
 
     /**
@@ -134,7 +179,19 @@ class Metric extends Model implements HasPresenter
      */
     public function scopeDisplayable(Builder $query)
     {
-        return $query->where('display_chart', '=', true);
+        return $query->where('display_chart', '=', true)->where('visible', '<>', self::VISIBLE_HIDDEN);
+    }
+
+    /**
+     * Finds all metrics which are visible to public.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeVisible(Builder $query)
+    {
+        return $query->where('visible', '=', self::VISIBLE_GUEST);
     }
 
     /**
@@ -145,6 +202,26 @@ class Metric extends Model implements HasPresenter
     public function getShouldDisplayAttribute()
     {
         return $this->display_chart;
+    }
+
+    /**
+     * Validate the model before save.
+     *
+     * @throws \AltThree\Validator\ValidationException
+     *
+     * @return void
+     */
+    public function validate()
+    {
+        $messages = [];
+
+        if (60 % $this->threshold !== 0) {
+            $messages[] = 'Threshold must divide by 60.';
+        }
+
+        if ($messages) {
+            throw new ValidationException(new MessageBag($messages));
+        }
     }
 
     /**

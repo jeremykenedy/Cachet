@@ -13,8 +13,9 @@ namespace CachetHQ\Cachet\Bus\Handlers\Commands\Schedule;
 
 use CachetHQ\Cachet\Bus\Commands\Schedule\UpdateScheduleCommand;
 use CachetHQ\Cachet\Bus\Events\Schedule\ScheduleWasUpdatedEvent;
-use CachetHQ\Cachet\Dates\DateFactory;
 use CachetHQ\Cachet\Models\Schedule;
+use CachetHQ\Cachet\Services\Dates\DateFactory;
+use Illuminate\Contracts\Auth\Guard;
 
 /**
  * This is the update schedule command handler.
@@ -24,21 +25,30 @@ use CachetHQ\Cachet\Models\Schedule;
 class UpdateScheduleCommandHandler
 {
     /**
+     * The authentication guard instance.
+     *
+     * @var \Illuminate\Contracts\Auth\Guard
+     */
+    protected $auth;
+
+    /**
      * The date factory instance.
      *
-     * @var \CachetHQ\Cachet\Dates\DateFactory
+     * @var \CachetHQ\Cachet\Services\Dates\DateFactory
      */
     protected $dates;
 
     /**
      * Create a new update schedule command handler instance.
      *
-     * @param \CachetHQ\Cachet\Dates\DateFactory $dates
+     * @param \Illuminate\Contracts\Auth\Guard            $auth
+     * @param \CachetHQ\Cachet\Services\Dates\DateFactory $dates
      *
      * @return void
      */
-    public function __construct(DateFactory $dates)
+    public function __construct(Guard $auth, DateFactory $dates)
     {
+        $this->auth = $auth;
         $this->dates = $dates;
     }
 
@@ -55,7 +65,7 @@ class UpdateScheduleCommandHandler
 
         $schedule->update($this->filter($command));
 
-        event(new ScheduleWasUpdatedEvent($schedule));
+        event(new ScheduleWasUpdatedEvent($this->auth->user(), $schedule));
 
         return $schedule;
     }
@@ -75,7 +85,7 @@ class UpdateScheduleCommandHandler
             'status'  => $command->status,
         ];
 
-        if ($scheduleddAt = $command->scheduled_at) {
+        if ($scheduledAt = $command->scheduled_at) {
             $params['scheduled_at'] = $this->dates->create('Y-m-d H:i', $scheduledAt);
         }
 

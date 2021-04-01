@@ -12,7 +12,7 @@
 namespace CachetHQ\Cachet\Http\Controllers\Dashboard;
 
 use AltThree\Validator\ValidationException;
-use CachetHQ\Cachet\Bus\Commands\Metric\AddMetricCommand;
+use CachetHQ\Cachet\Bus\Commands\Metric\CreateMetricCommand;
 use CachetHQ\Cachet\Bus\Commands\Metric\RemoveMetricCommand;
 use CachetHQ\Cachet\Bus\Commands\Metric\UpdateMetricCommand;
 use CachetHQ\Cachet\Models\Metric;
@@ -70,7 +70,7 @@ class MetricController extends Controller
         $metricData = Binput::get('metric');
 
         try {
-            dispatch(new AddMetricCommand(
+            execute(new CreateMetricCommand(
                 $metricData['name'],
                 $metricData['suffix'],
                 $metricData['description'],
@@ -79,7 +79,9 @@ class MetricController extends Controller
                 $metricData['display_chart'],
                 $metricData['places'],
                 $metricData['default_view'],
-                $metricData['threshold']
+                $metricData['threshold'],
+                0, // Default order
+                $metricData['visible']
             ));
         } catch (ValidationException $e) {
             return cachet_redirect('dashboard.metrics.create')
@@ -112,7 +114,7 @@ class MetricController extends Controller
      */
     public function deleteMetricAction(Metric $metric)
     {
-        dispatch(new RemoveMetricCommand($metric));
+        execute(new RemoveMetricCommand($metric));
 
         return cachet_redirect('dashboard.metrics')
             ->withSuccess(sprintf('%s %s', trans('dashboard.notifications.awesome'), trans('dashboard.metrics.delete.success')));
@@ -142,7 +144,7 @@ class MetricController extends Controller
     public function editMetricAction(Metric $metric)
     {
         try {
-            dispatch(new UpdateMetricCommand(
+            execute(new UpdateMetricCommand(
                 $metric,
                 Binput::get('name', null, false),
                 Binput::get('suffix', null, false),
@@ -152,7 +154,9 @@ class MetricController extends Controller
                 Binput::get('display_chart', null, false),
                 Binput::get('places', null, false),
                 Binput::get('default_view', null, false),
-                Binput::get('threshold', null, false)
+                Binput::get('threshold', null, false),
+                null,
+                Binput::get('visible', null, false)
             ));
         } catch (ValidationException $e) {
             return cachet_redirect('dashboard.metrics.edit', [$metric->id])

@@ -15,12 +15,14 @@ use CachetHQ\Cachet\Bus\Commands\Component\UpdateComponentCommand;
 use CachetHQ\Cachet\Bus\Commands\Incident\UpdateIncidentCommand;
 use CachetHQ\Cachet\Bus\Events\Incident\IncidentWasUpdatedEvent;
 use CachetHQ\Cachet\Bus\Exceptions\Incident\InvalidIncidentTimestampException;
-use CachetHQ\Cachet\Dates\DateFactory;
+use CachetHQ\Cachet\Bus\Handlers\Traits\StoresMeta;
 use CachetHQ\Cachet\Models\Component;
 use CachetHQ\Cachet\Models\Incident;
 use CachetHQ\Cachet\Models\IncidentTemplate;
-use Twig_Environment;
-use Twig_Loader_Array;
+use CachetHQ\Cachet\Services\Dates\DateFactory;
+use Illuminate\Contracts\Auth\Guard;
+use Twig\Environment as Twig_Environment;
+use Twig\Loader\ArrayLoader as Twig_Loader_Array;
 
 /**
  * This is the update incident command handler.
@@ -29,22 +31,33 @@ use Twig_Loader_Array;
  */
 class UpdateIncidentCommandHandler
 {
+    use StoresMeta;
+
+    /**
+     * The authentication guard instance.
+     *
+     * @var \Illuminate\Contracts\Auth\Guard
+     */
+    protected $auth;
+
     /**
      * The date factory instance.
      *
-     * @var \CachetHQ\Cachet\Dates\DateFactory
+     * @var \CachetHQ\Cachet\Services\Dates\DateFactory
      */
     protected $dates;
 
     /**
      * Create a new update incident command handler instance.
      *
-     * @param \CachetHQ\Cachet\Dates\DateFactory $dates
+     * @param \Illuminate\Contracts\Auth\Guard            $auth
+     * @param \CachetHQ\Cachet\Services\Dates\DateFactory $dates
      *
      * @return void
      */
-    public function __construct(DateFactory $dates)
+    public function __construct(Guard $auth, DateFactory $dates)
     {
+        $this->auth = $auth;
         $this->dates = $dates;
     }
 
@@ -76,9 +89,14 @@ class UpdateIncidentCommandHandler
         // Rather than making lots of updates, just fill and save.
         $incident->save();
 
+        // Store any meta?
+        if ($meta = $command->meta) {
+            $this->storeMeta($command->meta, 'incidents', $incident->id);
+        }
+
         // Update the component.
         if ($component = Component::find($command->component_id)) {
-            dispatch(new UpdateComponentCommand(
+            execute(new UpdateComponentCommand(
                 Component::find($command->component_id),
                 null,
                 null,
@@ -86,11 +104,13 @@ class UpdateIncidentCommandHandler
                 null,
                 null,
                 null,
-                null
+                null,
+                null,
+                false
             ));
         }
 
-        event(new IncidentWasUpdatedEvent($incident));
+        event(new IncidentWasUpdatedEvent($this->auth->user(), $incident));
 
         return $incident;
     }

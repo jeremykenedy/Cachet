@@ -8,10 +8,10 @@
             @if (in_array($component->id, $subscriptions) || $subscriber->global)
                 checked="checked"
             @endif />
-          {{ $component->name }}
+          {!! $component->name !!}
         </label>
+        @if($component->description)
+        <i class="ion ion-ios-help-outline help-icon" data-toggle="tooltip" data-title="{{ $component->description }}" data-container="body"></i>
+        @endif
     </div>
-    @if($component->description)
-    <i class="ion ion-ios-help-outline help-icon" data-toggle="tooltip" data-title="{{ $component->description }}" data-container="body"></i>
-    @endif
 </li>

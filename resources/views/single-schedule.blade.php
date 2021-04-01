@@ -1,5 +1,9 @@
 @extends('layout.master')
 
+@section('title', $schedule->name.' | '.$siteTitle)
+
+@section('description', trans('cachet.meta.description.schedule', ['name' => $schedule->name, 'startDate' => $schedule->scheduled_at_formatted]))
+
 @section('bodyClass', 'no-padding')
 
 @section('outer-content')
@@ -24,7 +28,7 @@
                             <strong>{{ $schedule->name }}</strong>{{ trans("cachet.incidents.scheduled_at", ["timestamp" => $schedule->scheduled_at_diff]) }}
                         </div>
                         <div class="panel-body">
-                            {!! $schedule->formattedMessage !!}
+                            {!! $schedule->formatted_message !!}
                         </div>
                     </div>
                 </div>
@@ -32,4 +36,8 @@
         </div>
     </div>
 </div>
+@stop
+
+@section('bottom-content')
+@include('partials.footer')
 @stop

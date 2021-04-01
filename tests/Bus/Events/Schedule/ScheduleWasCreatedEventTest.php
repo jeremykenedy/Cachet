@@ -13,18 +13,19 @@ namespace CachetHQ\Tests\Cachet\Bus\Events\Schedule;
 
 use CachetHQ\Cachet\Bus\Events\Schedule\ScheduleWasCreatedEvent;
 use CachetHQ\Cachet\Models\Schedule;
+use CachetHQ\Cachet\Models\User;
 
 class ScheduleWasCreatedEventTest extends AbstractScheduleEventTestCase
 {
     protected function objectHasHandlers()
     {
-        return false;
+        return true;
     }
 
     protected function getObjectAndParams()
     {
-        $params = ['schedule' => new Schedule()];
-        $object = new ScheduleWasCreatedEvent($params['schedule']);
+        $params = ['user' => new User(), 'schedule' => new Schedule()];
+        $object = new ScheduleWasCreatedEvent($params['user'], $params['schedule']);
 
         return compact('params', 'object');
     }

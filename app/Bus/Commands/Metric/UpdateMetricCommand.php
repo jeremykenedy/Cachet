@@ -93,6 +93,13 @@ final class UpdateMetricCommand
     public $order;
 
     /**
+     * The visibility of the metric.
+     *
+     * @var int
+     */
+    public $visible;
+
+    /**
      * The validation rules.
      *
      * @var string[]
@@ -101,14 +108,14 @@ final class UpdateMetricCommand
         'name'          => 'nullable|string',
         'suffix'        => 'nullable|string',
         'description'   => 'nullable|string',
-        'display_chart' => 'nullable|bool',
         'default_value' => 'nullable|numeric',
         'calc_type'     => 'nullable|int|in:0,1',
         'display_chart' => 'nullable|int',
         'places'        => 'nullable|numeric|between:0,4',
         'default_view'  => 'nullable|numeric|between:0,4',
-        'threshold'     => 'nullable|numeric|between:0,10',
+        'threshold'     => 'nullable|int',
         'order'         => 'nullable|int',
+        'visible'       => 'nullable|int|between:0,2',
     ];
 
     /**
@@ -125,10 +132,11 @@ final class UpdateMetricCommand
      * @param int                            $default_view
      * @param int                            $threshold
      * @param int|null                       $order
+     * @param int                            $visible
      *
      * @return void
      */
-    public function __construct(Metric $metric, $name, $suffix, $description, $default_value, $calc_type, $display_chart, $places, $default_view, $threshold, $order = null)
+    public function __construct(Metric $metric, $name, $suffix, $description, $default_value, $calc_type, $display_chart, $places, $default_view, $threshold, $order = null, $visible = null)
     {
         $this->metric = $metric;
         $this->name = $name;
@@ -141,5 +149,6 @@ final class UpdateMetricCommand
         $this->default_view = $default_view;
         $this->threshold = $threshold;
         $this->order = $order;
+        $this->visible = $visible;
     }
 }
